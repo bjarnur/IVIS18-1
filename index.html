@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<!-- 
+	Project trying to best visualize student attributes in order to enable
+	optimal decision making when grouping students together. 
+
+  	Thanks to parcoords for a great library! (link below)
+  	http://syntagmatic.github.io/parallel-coordinates/ 
+ -->
+<html>
+  <head>
+  	<script id="d3" src="https://d3js.org/d3.v3.js"></script>    	  	
+  	<script src="d3.parcoords.js"></script>
+  	<script id="app" src="http://localhost:8888/index.js"></script>
+
+  	<link rel="stylesheet" type="text/css" href="d3.parcoords.css">	
+  </head>
+  <body>
+    <div id="about" class="header" style="width:90%;height:10%">
+    	<h2>
+    		Quantitative information
+    	</h2>
+    </div>
+
+    <div id="canvas" class="parcoords" style="width:95%;height:400px"></div>    
+  </body>
+</html>
