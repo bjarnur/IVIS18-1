@@ -20,7 +20,7 @@
 }
 .parcoords .axis line, .parcoords .axis path {
   fill: gray;
-  stroke-width:5px;
+  stroke-width:3px;
   stroke: #00;
   shape-rendering: crispEdges;
 }

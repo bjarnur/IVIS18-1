@@ -28,24 +28,18 @@
     </div>
 
     <div id="canvas" class="parcoords" style="width:95%;height:400px"></div>
-	<div ng-app="myShoppingList" ng-controller="myCtrl">
-	  	<label ng-repeat="dimension in dimensions">
+	<div ng-app="myApp" ng-controller="featureSelectionController">
+	  	<label ng-repeat="feature in features">
 		  <!--
-		    - Use `value="{{fruit.name}}"` to give the input a real value, in case the form gets submitted
-		      traditionally
-
-		    - Use `ng-checked="fruit.selected"` to have the checkbox checked based on some angular expression
-		      (no two-way-data-binding)
-
-		    - Use `ng-model="fruit.selected"` to utilize two-way-data-binding. Note that `.selected`
+		      Use `ng-model="dimension.selected"` to utilize two-way-data-binding. Note that `.selected`
 		      is arbitrary. The property name could be anything and will be created on the object if not present.
 		  -->
 		  <input
 		    type="checkbox"
-		    name="selectedDimensions[]"
-		    value="{{dimension.name}}"
-		    ng-model="dimension.selected"
-		  > {{dimension.name}}
+		    name="selectedFeatures[]"
+		    value="{{feature.name}}"
+		    ng-model="feature.selected"
+		  > {{feature.name}}
 		</label>
 	</div>
   </body>

@@ -7,15 +7,16 @@
 */
 
 
-
-//Sanity check
-console.log('I like crayons')
-
 /*
 Parallell Coordinates model is bound to this */
 var paracords;
-var hidden_dimensions;
-var always_hide = [	"Timestamp", "Alias", "Degree", "Major", "Interests", "Expectations"];
+/*
+Keeps track of what features should currently be hidden */
+var hidden_features;
+var qualitative_features = ["Timestamp", "Alias", "Degree", "Major", "Interests", "Expectations"];
+/*
+Selected attribute is used to color cocde graph */
+var color_by = '';
 
 /*
 Loads all records of all entries in dataset */
@@ -45,6 +46,33 @@ function load_full_records(data) {
 	};
 }
 
+// linear color scale
+//var blue_to_brown = d3.scale.linear()
+var blue_to_brown = d3.scale.quantize()
+  .domain([1, 10])
+  .range(["navy", "crimson"])
+  //.interpolate(d3.interpolateLab);
+
+// update color
+function change_color(dimension) {
+  color_by = dimension;
+  paracords.svg.selectAll(".dimension")
+    .style("font-weight", "normal")
+    .filter(function(d) { return d == dimension; })
+    .style("font-weight", "bold")
+  console.log(color_by);  
+  paracords.render;
+}
+
+//TODO could be useful for breaking down time intervals
+function get_attr_value(data, attribute_name) {
+	var result = [];
+	for(var i = 0; i < data.length; i++) {
+		result.push(data[i][attribute_name]);	
+	}
+	return result;
+}
+
 function load_parallell_coordinates() {
 	//Load data from CSV file on startup
 	d3.csv(
@@ -53,34 +81,31 @@ function load_parallell_coordinates() {
 		function(error, data) {
 			paracords = d3.parcoords()("#canvas")
 			    .data(data)
-			    .hideAxis(hidden_dimensions)
+			    .hideAxis(hidden_features)
+			    .composite("darken")
+			    .alpha(0.45)			    
+			    //.shadows()			    
+			    .color(function(d) { return blue_to_brown(d[color_by]); })			    
 			    .render()
-			    .shadows()
-			    .brushMode("1D-axes")  // enable brushing
-			    //.createAxes() //??
-			    .reorderable();
+			    .reorderable()
+			    .brushMode("1D-axes");  // enable brushing
 
-			//set_color("Degree");
-		 	//change_color("Programming");
-
-		 	paracords.svg
-		 		.style("margin: 10px")
 
 			// click label to activate coloring
 			paracords.svg.selectAll(".dimension")
-				//.on("click", change_color)
+				.on("click", change_color)
 				.selectAll(".label")
 				.style("font-size", "14px");
 
 			paracords.svg.selectAll(".label")
 				 .attr("transform", "translate(-5,-5) rotate(0)")
 
-			
+			if(color_by == "") {
+				console.log('asdf');
+				change_color('Programming');
+			}			
 	});
 }
-
-//App entry point
-document.addEventListener('DOMContentLoaded', function() { load_parallell_coordinates(); });
 
 //Set color based on major, very hard to read
 function set_color(entry) {  	
@@ -96,21 +121,19 @@ function set_color(entry) {
   	}
 }
 
-
-function update_model(selected) {
-	console.log(selected);		
-	hidden_dimensions = selected.concat(always_hide);
-	console.log(hidden_dimensions);
-	
+/*
+Called from angular controller to update list of hidden features, and redraw model*/
+function update_model(selected) {	
+	//TODO: Currently redrawing whole model, might be a better way to do this
+	hidden_features = selected.concat(qualitative_features);
 	d3.select("#canvas").html("");
 	load_parallell_coordinates();
-	//paracords.updateAxes();
 }
 
-var app = angular.module("myShoppingList", []); 
-app.controller('myCtrl', ['$scope', 'filterFilter', function ObjectArrayCtrl($scope, filterFilter) {
+var app = angular.module("myApp", []); 
+app.controller('featureSelectionController', ['$scope', 'filterFilter', function ObjectArrayCtrl($scope, filterFilter) {
 	  // Dimensions
-	  $scope.dimensions = [
+	  $scope.features = [
 		{ name: 'Statistics', selected: true},
 		{ name: 'Mathematic', selected: false},	
 		{ name: 'Programming', selected: true},
@@ -125,27 +148,31 @@ app.controller('myCtrl', ['$scope', 'filterFilter', function ObjectArrayCtrl($sc
 		{ name: 'Code Repository', selected: false}
 	  ];
 
-	  // Selected dimensions
+	  // Selected features
 	  $scope.selection = [];
 	  $scope.hidecollection = [];
 
-	  // Helper method to get selected dimensions
+	  // Helper method to get selected features
 	  $scope.selectedDimensions = function selectedDimensions() {	  	
 	    return filterFilter($scope.dimensions, { selected: true });
 	  };
 
-	  //Update list of selected dimensions. 
-	  $scope.$watch('dimensions|filter:{selected:true}', function (nv) {
-	    $scope.selection = nv.map(function (dimension) {	      
-	      return dimension.name;
+	  //Update list of selected features. 
+	  $scope.$watch('features|filter:{selected:true}', function (nv) {
+	    $scope.selection = nv.map(function (feature) {	      
+	      return feature.name;
 	    });
 	  }, true);
 
-	  //Update list of hidden dimensions, update PC model
-	  $scope.$watch('dimensions|filter:{selected:false}', function (nv) {	    
-	    $scope.hidecollection = nv.map(function (dimension) {	      
-	      return dimension.name;
+	  //Update list of hidden features, update PC model
+	  $scope.$watch('features|filter:{selected:false}', function (nv) {	    
+	    $scope.hidecollection = nv.map(function (feature) {	      
+	      return feature.name;
 	    });
 	    update_model($scope.hidecollection);
 	  }, true);
 }]);
+
+/*
+Iniital construction of Parallell Coordinates */
+document.addEventListener('DOMContentLoaded', function() { load_parallell_coordinates(); });
