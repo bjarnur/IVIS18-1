@@ -6,12 +6,16 @@
   	http://syntagmatic.github.io/parallel-coordinates/ 
 */
 
+
+
 //Sanity check
 console.log('I like crayons')
 
 /*
 Parallell Coordinates model is bound to this */
 var paracords;
+var hidden_dimensions;
+var always_hide = [	"Timestamp", "Alias", "Degree", "Major", "Interests", "Expectations"];
 
 /*
 Loads all records of all entries in dataset */
@@ -34,16 +38,49 @@ function load_full_records(data) {
 		"Information Vis." : +data["Information Vis."],		
 		"Drawing/Art" : +data["Drawing/Art"],
 		"Computer Usage" : +data["Computer Usage"],		
-		"Graphics_Programming" : +data["Graphics_Programming"],
+		"Graphics Programming" : +data["Graphics Programming"],
 		"HCI Programming" : +data["HCI Programming"],
 		"UX Evaluation" : +data["UX Evaluation"],
 		"Code Repository" : +data["Code Repository"]
 	};
 }
 
-function initialize_paracoords(data, error) {
+function load_parallell_coordinates() {
+	//Load data from CSV file on startup
+	d3.csv(
+		"http://localhost:8888/survey.csv", 
+		function(d) { return load_full_records(d); }, 
+		function(error, data) {
+			paracords = d3.parcoords()("#canvas")
+			    .data(data)
+			    .hideAxis(hidden_dimensions)
+			    .render()
+			    .shadows()
+			    .brushMode("1D-axes")  // enable brushing
+			    //.createAxes() //??
+			    .reorderable();
 
+			//set_color("Degree");
+		 	//change_color("Programming");
+
+		 	paracords.svg
+		 		.style("margin: 10px")
+
+			// click label to activate coloring
+			paracords.svg.selectAll(".dimension")
+				//.on("click", change_color)
+				.selectAll(".label")
+				.style("font-size", "14px");
+
+			paracords.svg.selectAll(".label")
+				 .attr("transform", "translate(-5,-5) rotate(0)")
+
+			
+	});
 }
+
+//App entry point
+document.addEventListener('DOMContentLoaded', function() { load_parallell_coordinates(); });
 
 //Set color based on major, very hard to read
 function set_color(entry) {  	
@@ -59,60 +96,56 @@ function set_color(entry) {
   	}
 }
 
-// color scale for zscores
-var zcolorscale = d3.scale.linear()
-  .domain([1,10])
-  //.range(["brown", "#999", "#999", "steelblue"])
-  .range(["#ffcccc", "#800000"])
-  .interpolate(d3.interpolateLab);
 
+function update_model(selected) {
+	console.log(selected);		
+	hidden_dimensions = selected.concat(always_hide);
+	console.log(hidden_dimensions);
+	
+	d3.select("#canvas").html("");
+	load_parallell_coordinates();
+	//paracords.updateAxes();
+}
 
-//Load data from CSV file on startup
-d3.csv(
-	"http://localhost:8888/survey.csv", 
-	function(d) { return load_full_records(d); }, 
-	function(error, data) {
-		paracords = d3.parcoords()("#canvas")
-		    .data(data)
-		    .hideAxis([	"Timestamp", "Alias", "Degree", "Major", "Interests", 
-		    			"Expectations", "Information_Visualization", 
-		    			"Computer_Graphics_Programming", "Code_Repository", 
-		    			"Human_Computer_Interaction_Programming", "Mathematic"])
-		    .render()
-		    .shadows()
-		    .brushMode("1D-axes")  // enable brushing
-		    //.createAxes() //??
-		    .reorderable();
+var app = angular.module("myShoppingList", []); 
+app.controller('myCtrl', ['$scope', 'filterFilter', function ObjectArrayCtrl($scope, filterFilter) {
+	  // Dimensions
+	  $scope.dimensions = [
+		{ name: 'Statistics', selected: true},
+		{ name: 'Mathematic', selected: false},	
+		{ name: 'Programming', selected: true},
+		{ name: 'Communication', selected: true},
+		{ name: 'Collaboration', selected: true},
+		{ name: 'Information Vis.', selected: false},
+		{ name: 'Drawing/Art', selected: false},
+		{ name: 'Computer Usage', selected: false},
+		{ name: 'Graphics Programming', selected: false},
+		{ name: 'HCI Programming', selected: false},
+		{ name: 'UX Evaluation', selected: true},
+		{ name: 'Code Repository', selected: false}
+	  ];
 
-		//set_color("Degree");
-	 	change_color("Programming");
+	  // Selected dimensions
+	  $scope.selection = [];
+	  $scope.hidecollection = [];
 
-	 	paracords.svg
-	 		.style("margin: 10px")
+	  // Helper method to get selected dimensions
+	  $scope.selectedDimensions = function selectedDimensions() {	  	
+	    return filterFilter($scope.dimensions, { selected: true });
+	  };
 
-		// click label to activate coloring
-		paracords.svg.selectAll(".dimension")
-			.on("click", change_color)
-			.selectAll(".label")
-			.style("font-size", "14px");
+	  //Update list of selected dimensions. 
+	  $scope.$watch('dimensions|filter:{selected:true}', function (nv) {
+	    $scope.selection = nv.map(function (dimension) {	      
+	      return dimension.name;
+	    });
+	  }, true);
 
-		paracords.svg.selectAll(".label")
-			 .attr("transform", "translate(5,-3) rotate(10)")
-
-		//<text text-anchor="middle" y="0" transform="translate(0,-5) rotate(0)" x="0" class="label" style="font-size: 14px;">Programming</text>
-	}
-);
-
-
-	// update color
-	function change_color(dimension) {
-	  paracords.svg.selectAll(".dimension")
-	    .style("font-weight", "normal")
-	    .filter(function(d) { return d == dimension; })
-	    .style("font-weight", "bold")
-
-	  console.log(paracords.data()) //TODO: Get all values of dimension
-	  
-	  var color = zcolorscale(paracords.data().dimension);
-	  paracords.color(color).render();
-	};
+	  //Update list of hidden dimensions, update PC model
+	  $scope.$watch('dimensions|filter:{selected:false}', function (nv) {	    
+	    $scope.hidecollection = nv.map(function (dimension) {	      
+	      return dimension.name;
+	    });
+	    update_model($scope.hidecollection);
+	  }, true);
+}]);

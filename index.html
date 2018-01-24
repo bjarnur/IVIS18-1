@@ -8,19 +8,45 @@
  -->
 <html>
   <head>
+  	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.1/angular.min.js"></script>
+  	<!--<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.0rc1/angular-route.min.js"></script>-->
   	<script id="d3" src="https://d3js.org/d3.v3.js"></script>    	  	
   	<script src="d3.parcoords.js"></script>
+  	
+  	<link rel="stylesheet" type="text/css" href="d3.parcoords.css">	
+
+  	<!--  -->
   	<script id="app" src="http://localhost:8888/index.js"></script>
 
-  	<link rel="stylesheet" type="text/css" href="d3.parcoords.css">	
+  	<link rel="shortcut icon" href="">
   </head>
-  <body>
+  <body>    
     <div id="about" class="header" style="width:90%;height:10%">
     	<h2>
     		Quantitative information
     	</h2>
     </div>
 
-    <div id="canvas" class="parcoords" style="width:95%;height:400px"></div>    
+    <div id="canvas" class="parcoords" style="width:95%;height:400px"></div>
+	<div ng-app="myShoppingList" ng-controller="myCtrl">
+	  	<label ng-repeat="dimension in dimensions">
+		  <!--
+		    - Use `value="{{fruit.name}}"` to give the input a real value, in case the form gets submitted
+		      traditionally
+
+		    - Use `ng-checked="fruit.selected"` to have the checkbox checked based on some angular expression
+		      (no two-way-data-binding)
+
+		    - Use `ng-model="fruit.selected"` to utilize two-way-data-binding. Note that `.selected`
+		      is arbitrary. The property name could be anything and will be created on the object if not present.
+		  -->
+		  <input
+		    type="checkbox"
+		    name="selectedDimensions[]"
+		    value="{{dimension.name}}"
+		    ng-model="dimension.selected"
+		  > {{dimension.name}}
+		</label>
+	</div>
   </body>
 </html>
