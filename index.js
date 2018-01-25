@@ -115,7 +115,13 @@ function load_parallell_coordinates() {
 			paracords.svg.selectAll(".dimension")
 				//.on("click", change_color)
 			paracords.svg.selectAll(".label")
-				 .attr("transform", "translate(-5,-5) rotate(0)")		
+				 .attr("transform", "translate(-5,-5) rotate(0)")
+			parcoords.margin({
+			  top: 100,
+			  left: 0,
+			  right: 0,
+			  bottom: 20
+			})
 			//paracords.brushedColor("#000");
 	});
 }  

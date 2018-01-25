@@ -5,6 +5,7 @@ body {
   /*width: 80%;*/
   background: #fcfcfc;
   line-height: 1.45em;
+  overflow: scroll;
 }
 a {
   color: #555;
@@ -30,6 +31,7 @@ ul {
   height: 200px;
   margin: 12px 0;
 }
+
 p {
   width: 560px;
 }
@@ -46,7 +48,7 @@ h1 small {
   font-size: 0.5em;
 }
 h3 {
-  margin-top: 40px;
+  /*margin-top: 40px;*/
 }
 .float {
   float: left;
@@ -60,12 +62,22 @@ h3 {
 input {
   font-size: 16px;
 }
-label{  
-    width:200px;       
 
-    position:relative;
-    left: -20px;
+.modelParams{  
+  width:28%;       
+  /*position:relative;
+  right: 20px;*/
+  margin-right: 2%;
+  float: right;
+  display:inline-block;
+  vertical-align:middle;
 
-    display:inline-block;    
-    vertical-align:middle; 
+}
+label {
+  display: block;
+}
+#canvas {
+  width: 70%;
+  height: 400px;
+  float: left;
 }

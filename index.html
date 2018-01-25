@@ -22,13 +22,17 @@
   	<link rel="shortcut icon" href="">
   </head>
   <body ng-app="myApp">    
-    <div id="about" class="header" style="width:90%;height:10%">
+    <div align="center">
     	<h2>
     		Quantitative information
     	</h2>
     </div>
 
-	<div ng-controller="majorSelectionController">
+    <!-- D3 uses this canvas  -->
+    <div id="canvas" class="parcoords"></div>
+
+	<div class="modelParams" ng-controller="majorSelectionController">
+		<h4>Select majors to include</h4>
 	  	<label ng-repeat="major in majors">
 		  <input
 		    type="checkbox"
@@ -42,12 +46,9 @@
 		  </span>).
 		</label>
 	</div>
-
-    <!-- D3 uses this canvas  -->
-    <div id="canvas" class="parcoords" style="width:95%;height:400px"></div>
-	
-    <h4>Select attributes to include</h4>
-	<div ng-controller="featureSelectionController">
+	    
+	<div class="modelParams" ng-controller="featureSelectionController">
+		<h4>Select attributes to include</h4>
 	  	<label ng-repeat="feature in features">
 		  <!--
 		      Use `ng-model="dimension.selected"` to utilize two-way-data-binding. Note that `.selected`
