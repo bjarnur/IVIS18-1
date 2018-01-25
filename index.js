@@ -7,19 +7,36 @@
 */
 
 
+
 /*
 Parallell Coordinates model is bound to this */
 var paracords;
 /*
 Keeps track of what features should currently be hidden */
 var hidden_features = [];
-
+/*
+Features not included in quantitative visualizations*/
 var qualitative_features = ["Timestamp", "Alias", "Degree", "Major", "Interests", "Expectations"];
-var knownMajors = ['Computer Science', 'Media Technology', 'Human-Computer Interaction']
+/*
+When true data is color coded by 'Major' attribute*/
+var use_colors = true;
+/*
+Three main classes of 'Major', remaining categorized as 'Other'*/
+var known_majors = ['Computer Science', 'Media Technology', 'Human-Computer Interaction']
+
 
 /*
 Loads all records of all entries in dataset */
 function load_full_records(data) {
+	
+	var deadlineStr = '1/16/2018 23:59:59';
+	var deadline = Date.parse(deadlineStr);
+	var c = Date.parse(data.Timestamp);
+	var hours = (deadline - c) / 36e5
+	if(hours < 0) {
+		console.log(hours);
+	}
+	
 	return {
 		//Qualitative data
 		Timestamp : data.Timestamp,
@@ -41,24 +58,30 @@ function load_full_records(data) {
 		"Graphics Programming" : +data["Graphics Programming"],
 		"HCI Programming" : +data["HCI Programming"],
 		"UX Evaluation" : +data["UX Evaluation"],
-		"Code Repository" : +data["Code Repository"]
+		"Code Repository" : +data["Code Repository"],
+		"Answ. #hrs before deadline" : hours
 	};
 }
 
 /*
 Set color based on user selection */
 function get_color(major) { 
-  switch(major) 
- {  		case "Computer Science":
-   			return "red";
-   		case "Media Technology":
-   			return "green";
-   		case "Human-Computer Interaction":
-   			return "blue";
-   		default:
-   			return "cyan";
-   	}
-}
+  	if(use_colors) {
+	  	switch(major) {
+	  		case "Computer Science":
+	  			return "red";
+	  		case "Media Technology":
+	  			return "green";
+	  		case "Human-Computer Interaction":
+	  			return "blue";
+	  		default:
+	  			return "cyan";
+	  	}
+  	}
+  	else {
+  		return "steelblue";
+  	}
+ }
 
 //TODO could be useful for breaking down time intervals
 function get_attr_value(data, attribute_name) {
@@ -72,14 +95,11 @@ function get_attr_value(data, attribute_name) {
 /*
 Filters data based on query selection */
 function filter_data(data) {
-
 	var filtered = [];
-	console.log(data);
 	for(var i = 0; i < data.length; i++) {
 		if(!include_majors.includes(data[i]['Major'])) {
-			
-			//Major belongs to "others"
-			if(!knownMajors.includes(data[i]['Major']) && include_majors.includes('Other')) {
+			//Major belongs to 'Others' category, which is included
+			if(!known_majors.includes(data[i]['Major']) && include_majors.includes('Other')) {
 				filtered.push(data[i]);
 			}
 		}
@@ -90,9 +110,11 @@ function filter_data(data) {
 	return filtered;
 }
 
+/*
+Load data from .csv file, and render Parallell Coordinates*/
 function load_parallell_coordinates() {
-	//Load data from CSV file on startup
-	d3.csv(
+	
+	d3.csv(	
 		"http://localhost:8888/survey.csv", 
 		function(d) { return load_full_records(d); }, 
 		function(error, rawData) {
@@ -106,60 +128,41 @@ function load_parallell_coordinates() {
 			    .render()
 			    .shadows()
 			    .reorderable()
-			    .brushMode("1D-axes");
-			    //.alphaOnBrushed(0.1)
-			    //.alpha(0.1)
-			   	//.shadows()
-			    
+			    .brushMode("1D-axes");			    
 
 			paracords.svg.selectAll(".dimension")
 				//.on("click", change_color)
 			paracords.svg.selectAll(".label")
 				 .attr("transform", "translate(-5,-5) rotate(0)")
-			parcoords.margin({
-			  top: 100,
-			  left: 0,
-			  right: 0,
-			  bottom: 20
-			})
-			//paracords.brushedColor("#000");
 	});
 }  
 
-//Set color based on major, very hard to read
-function set_color(entry) {  	
-  	switch(entry.Major) {
-  		case "Computer Science":
-  			return "red";
-  		case "Media Technology":
-  			return "black";
-  		case "Human-Computer Interaction":
-  			return "purple";
-  		default:
-  			return "yellow";
-  	}
+
+/*
+Called from angular controller to update list of hidden features, and redraw model*/
+function update_feature_selection(features_to_hide) {	
+	hidden_features = features_to_hide.concat(qualitative_features);
+	redraw_model();
 }
 
 /*
 Called from angular controller to update list of hidden features, and redraw model*/
-function update_model(selected) {	
-	//TODO: Currently redrawing whole model, might be a better way to do this
-	hidden_features = selected.concat(qualitative_features);
-	d3.select("#canvas").html("");
-	load_parallell_coordinates();
-}
-
-/*
-Called from angular controller to update list of hidden features, and redraw model*/
-function update_model2(selected) {	
+function update_major_selection(selected) {	
 	include_majors = selected;
+	redraw_model();
+}
+
+/*
+Completely redraws Parallell Coordinates model */
+function redraw_model() {
+	//TODO: Currently redrawing whole model, might be a better way to do this
 	d3.select("#canvas").html("");
 	load_parallell_coordinates();
 }
 
 
 var app = angular.module("myApp", []); 
-app.controller('featureSelectionController', ['$scope', 'filterFilter', function ObjectArrayCtrl($scope, filterFilter) {
+app.controller('featureSelectionController', ['$scope', 'filterFilter', function ($scope, filterFilter) {
 	  // Dimensions
 	  $scope.features = [
 		{ name: 'Statistics', selected: true},
@@ -173,69 +176,63 @@ app.controller('featureSelectionController', ['$scope', 'filterFilter', function
 		{ name: 'Graphics Programming', selected: false},
 		{ name: 'HCI Programming', selected: false},
 		{ name: 'UX Evaluation', selected: true},
-		{ name: 'Code Repository', selected: false}
+		{ name: 'Code Repository', selected: false},
+		{ name: 'Answ. #hrs before deadline', selected : false}
 	  ];
 
-	  // Selected features
-	  $scope.selection = [];
-	  $scope.hidecollection = [];
+	  // Features that are not included 
+	  $scope.features_to_hide = [];
 
 	  // Helper method to get selected features
-	  $scope.selectedDimensions = function selectedDimensions() {	  	
-	    return filterFilter($scope.dimensions, { selected: true });
+	  $scope.selectedFeatures = function selectedFeatures() {	  	
+	    return filterFilter($scope.features, { selected: true });
 	  };
-
-	  //Update list of selected features. 
-	  $scope.$watch('features|filter:{selected:true}', function (nv) {
-	    $scope.selection = nv.map(function (feature) {	      
-	      return feature.name;
-	    });
-	  }, true);
 
 	  //Update list of hidden features, update PC model
 	  $scope.$watch('features|filter:{selected:false}', function (nv) {	    
-	    $scope.hidecollection = nv.map(function (feature) {	      
+	    $scope.features_to_hide = nv.map(function (feature) {	      
 	      return feature.name;
 	    });
-	    update_model($scope.hidecollection);
+	    update_feature_selection($scope.features_to_hide);
 	  }, true);
 }]);
 
 
-app.controller('majorSelectionController', ['$scope', 'filterFilter', function ObjectArrayCtrl($scope, filterFilter) {
-	  // Dimensions
-	  $scope.majors = [
+app.controller('majorSelectionController', ['$scope', 'filterFilter', function ($scope, filterFilter) {
+	
+	//Selection of majors
+	$scope.majors = [
 		{ name: 'Media Technology', color: 'green', selected: true},
 		{ name: 'Human-Computer Interaction', color: 'blue', selected: true},	
 		{ name: 'Computer Science', color: 'red', selected: true},
 		{ name: 'Other', color: 'cyan', selected: false}
-	  ];
+	];
 
-	  // Selected majors
-	  $scope.selectedMajors = [];
-	  $scope.hideMajors = [];
+	//Boolean to include colos
+	$scope.color = { name: 'Color', selected: false };	  
 
-	  // Helper method to get selected features
-	  $scope.selectedMajors = function selectedMajors() {	  	
-	    return filterFilter($scope.majors, { selected: true });
-	  };
+	// Selected majors
+	$scope.selectedMajors = [];
 
-	  //Update list of selected features. 
-	  $scope.$watch('majors|filter:{selected:true}', function (nv) {
-	    $scope.selectedMajors = nv.map(function (major) {	      
-	      return major.name;
-	    });
-	    update_model2($scope.selectedMajors);
-	  }, true);
+	// Helper method to get selected features
+	$scope.selectedMajors = function selectedMajors() {	  	
+		return filterFilter($scope.majors, { selected: true });
+  	};
 
-	  //Update list of hidden features, update PC model
-	  $scope.$watch('majors|filter:{selected:false}', function (nv) {	    
-	    $scope.hideMajors = nv.map(function (major) {
-	      return major.name;
-	    });
-	    //update_model2($scope.hideMajors);
-	  }, true);
+	//Update list of included majors
+	$scope.$watch('majors|filter:{selected:true}', function (nv) {
+		$scope.selectedMajors = nv.map(function (major) {	      
+	  		return major.name;
+		});
+		update_major_selection($scope.selectedMajors);
+	}, true);
+
+	$scope.updateColor = function(value){
+		use_colors = value;
+		redraw_model();
+	};
 }]);
+
 
 /*
 Iniital construction of Parallell Coordinates */

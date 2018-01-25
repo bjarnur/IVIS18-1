@@ -8,8 +8,18 @@
  -->
 <html>
   <head>
+  	
   	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.1/angular.min.js"></script>
-  	<!--<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.0rc1/angular-route.min.js"></script>-->
+
+  	<!--<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.0rc1/angular-route.min.js"></script>
+  	<link rel = "stylesheet"
+         href = "https://ajax.googleapis.com/ajax/libs/angular_material/1.0.0/angular-material.min.css">
+      <script src = "https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js"></script>
+      <script src = "https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular-animate.min.js"></script>
+      <script src = "https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular-aria.min.js"></script>
+      <script src = "https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular-messages.min.js"></script>
+      <script src = "https://ajax.googleapis.com/ajax/libs/angular_material/1.0.0/angular-material.min.js"></script>
+      <link rel = "stylesheet" href = "https://fonts.googleapis.com/icon?family=Material+Icons">-->
   	<script id="d3" src="https://d3js.org/d3.v3.js"></script>    	  	
   	<script src="d3.parcoords.js"></script>
   	
@@ -31,8 +41,9 @@
     <!-- D3 uses this canvas  -->
     <div id="canvas" class="parcoords"></div>
 
+
 	<div class="modelParams" ng-controller="majorSelectionController">
-		<h4>Select majors to include</h4>
+		<h4 align="center">Select majors to include</h4>
 	  	<label ng-repeat="major in majors">
 		  <input
 		    type="checkbox"
@@ -45,10 +56,17 @@
 		  	<b>{{major.color}}</b>
 		  </span>).
 		</label>
+		<label ng-repeat-end>
+		  <input
+		    type="checkbox"		    
+		    ng-model="color.selected"
+		    ng-change="updateColor(color.selected)"
+		  > <i>Enable color coding of majors</i>
+		</label>
 	</div>
 	    
 	<div class="modelParams" ng-controller="featureSelectionController">
-		<h4>Select attributes to include</h4>
+		<h4 align="center">Select attributes to include</h4>
 	  	<label ng-repeat="feature in features">
 		  <!--
 		      Use `ng-model="dimension.selected"` to utilize two-way-data-binding. Note that `.selected`
