@@ -67,17 +67,18 @@ input {
   width:28%;       
   /*position:relative;
   right: 20px;*/
-  margin-right: 2%;
+  margin-right: 1.5%;
   float: right;
   display:inline-block;
   vertical-align:middle;
-
 }
 label {
   display: block;
+  position:relative;
+  left: 5%;
 }
 #canvas {
   width: 70%;
-  height: 400px;
+  height: 500px;
   float: left;
 }

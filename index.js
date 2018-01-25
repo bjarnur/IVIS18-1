@@ -19,7 +19,7 @@ Features not included in quantitative visualizations*/
 var qualitative_features = ["Timestamp", "Alias", "Degree", "Major", "Interests", "Expectations"];
 /*
 When true data is color coded by 'Major' attribute*/
-var use_colors = true;
+var use_colors = false;
 /*
 Three main classes of 'Major', remaining categorized as 'Other'*/
 var known_majors = ['Computer Science', 'Media Technology', 'Human-Computer Interaction']
@@ -33,9 +33,6 @@ function load_full_records(data) {
 	var deadline = Date.parse(deadlineStr);
 	var c = Date.parse(data.Timestamp);
 	var hours = (deadline - c) / 36e5
-	if(hours < 0) {
-		console.log(hours);
-	}
 	
 	return {
 		//Qualitative data
@@ -133,23 +130,49 @@ function load_parallell_coordinates() {
 			paracords.svg.selectAll(".dimension")
 				//.on("click", change_color)
 			paracords.svg.selectAll(".label")
-				 .attr("transform", "translate(-5,-5) rotate(0)")
+				 .attr("transform", "translate(-5,-10) rotate(0)")
 	});
 }  
 
-
 /*
-Called from angular controller to update list of hidden features, and redraw model*/
-function update_feature_selection(features_to_hide) {	
-	hidden_features = features_to_hide.concat(qualitative_features);
-	redraw_model();
+Displayed instead of model if there is nothing to visualize */
+function print_empty_selection() {
+	d3.select("#canvas").html("");
+	d3.select("#canvas")
+      .append("p")
+      .attr("id", "emptySelectionError")
+      .append("text")
+      .text("Add features and/or Majors to visualize! :)");
 }
 
 /*
-Called from angular controller to update list of hidden features, and redraw model*/
+Returns true if there is no data to print */
+function is_empty_data() {
+	return hidden_features.length == 19 || include_majors.length == 0;
+}
+
+/*
+Called from angular controller to update list of hidden features, and redraw model */
+function update_feature_selection(features_to_hide) {		
+	hidden_features = features_to_hide.concat(qualitative_features);
+	if(is_empty_data()) {
+		print_empty_selection();		
+	}
+	else {
+		redraw_model();
+	}
+}
+
+/*
+Called from angular controller to update list of hidden features, and redraw model */
 function update_major_selection(selected) {	
 	include_majors = selected;
-	redraw_model();
+	if(is_empty_data()) {
+		print_empty_selection();		
+	}
+	else {
+		redraw_model();
+	}
 }
 
 /*
