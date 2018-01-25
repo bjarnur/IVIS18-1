@@ -2,7 +2,7 @@
 	Project trying to best visualize student attributes in order to enable
 	optimal decision making when grouping students together. 
 
-  	Thanks to parcoords for a great library! (link below)
+	Used Parallel-Coordinates library (and some examples):
   	http://syntagmatic.github.io/parallel-coordinates/ 
 */
 
