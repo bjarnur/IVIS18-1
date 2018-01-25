@@ -12,11 +12,10 @@ Parallell Coordinates model is bound to this */
 var paracords;
 /*
 Keeps track of what features should currently be hidden */
-var hidden_features;
+var hidden_features = [];
+
 var qualitative_features = ["Timestamp", "Alias", "Degree", "Major", "Interests", "Expectations"];
-/*
-Selected attribute is used to color cocde graph */
-var color_by = '';
+var knownMajors = ['Computer Science', 'Media Technology', 'Human-Computer Interaction']
 
 /*
 Loads all records of all entries in dataset */
@@ -46,22 +45,19 @@ function load_full_records(data) {
 	};
 }
 
-// linear color scale
-//var blue_to_brown = d3.scale.linear()
-var blue_to_brown = d3.scale.quantize()
-  .domain([1, 10])
-  .range(["navy", "crimson"])
-  //.interpolate(d3.interpolateLab);
-
-// update color
-function change_color(dimension) {
-  color_by = dimension;
-  paracords.svg.selectAll(".dimension")
-    .style("font-weight", "normal")
-    .filter(function(d) { return d == dimension; })
-    .style("font-weight", "bold")
-  console.log(color_by);  
-  paracords.render;
+/*
+Set color based on user selection */
+function get_color(major) { 
+  switch(major) 
+ {  		case "Computer Science":
+   			return "red";
+   		case "Media Technology":
+   			return "green";
+   		case "Human-Computer Interaction":
+   			return "blue";
+   		default:
+   			return "cyan";
+   	}
 }
 
 //TODO could be useful for breaking down time intervals
@@ -73,39 +69,56 @@ function get_attr_value(data, attribute_name) {
 	return result;
 }
 
+/*
+Filters data based on query selection */
+function filter_data(data) {
+
+	var filtered = [];
+	console.log(data);
+	for(var i = 0; i < data.length; i++) {
+		if(!include_majors.includes(data[i]['Major'])) {
+			
+			//Major belongs to "others"
+			if(!knownMajors.includes(data[i]['Major']) && include_majors.includes('Other')) {
+				filtered.push(data[i]);
+			}
+		}
+		else {
+			filtered.push(data[i]);
+		}
+	}
+	return filtered;
+}
+
 function load_parallell_coordinates() {
 	//Load data from CSV file on startup
 	d3.csv(
 		"http://localhost:8888/survey.csv", 
 		function(d) { return load_full_records(d); }, 
-		function(error, data) {
-			paracords = d3.parcoords()("#canvas")
+		function(error, rawData) {
+			
+			var data = filter_data(rawData);
+			paracords = d3.parcoords()("#canvas")				
+			    .color(function(d) { return get_color(d['Major']); })
 			    .data(data)
 			    .hideAxis(hidden_features)
-			    .composite("darken")
-			    .alpha(0.45)			    
-			    //.shadows()			    
-			    .color(function(d) { return blue_to_brown(d[color_by]); })			    
+			    .composite("darker")
 			    .render()
+			    .shadows()
 			    .reorderable()
-			    .brushMode("1D-axes");  // enable brushing
+			    .brushMode("1D-axes");
+			    //.alphaOnBrushed(0.1)
+			    //.alpha(0.1)
+			   	//.shadows()
+			    
 
-
-			// click label to activate coloring
 			paracords.svg.selectAll(".dimension")
-				.on("click", change_color)
-				.selectAll(".label")
-				.style("font-size", "14px");
-
+				//.on("click", change_color)
 			paracords.svg.selectAll(".label")
-				 .attr("transform", "translate(-5,-5) rotate(0)")
-
-			if(color_by == "") {
-				console.log('asdf');
-				change_color('Programming');
-			}			
+				 .attr("transform", "translate(-5,-5) rotate(0)")		
+			//paracords.brushedColor("#000");
 	});
-}
+}  
 
 //Set color based on major, very hard to read
 function set_color(entry) {  	
@@ -129,6 +142,15 @@ function update_model(selected) {
 	d3.select("#canvas").html("");
 	load_parallell_coordinates();
 }
+
+/*
+Called from angular controller to update list of hidden features, and redraw model*/
+function update_model2(selected) {	
+	include_majors = selected;
+	d3.select("#canvas").html("");
+	load_parallell_coordinates();
+}
+
 
 var app = angular.module("myApp", []); 
 app.controller('featureSelectionController', ['$scope', 'filterFilter', function ObjectArrayCtrl($scope, filterFilter) {
@@ -170,6 +192,42 @@ app.controller('featureSelectionController', ['$scope', 'filterFilter', function
 	      return feature.name;
 	    });
 	    update_model($scope.hidecollection);
+	  }, true);
+}]);
+
+
+app.controller('majorSelectionController', ['$scope', 'filterFilter', function ObjectArrayCtrl($scope, filterFilter) {
+	  // Dimensions
+	  $scope.majors = [
+		{ name: 'Media Technology', color: 'green', selected: true},
+		{ name: 'Human-Computer Interaction', color: 'blue', selected: true},	
+		{ name: 'Computer Science', color: 'red', selected: true},
+		{ name: 'Other', color: 'cyan', selected: false}
+	  ];
+
+	  // Selected majors
+	  $scope.selectedMajors = [];
+	  $scope.hideMajors = [];
+
+	  // Helper method to get selected features
+	  $scope.selectedMajors = function selectedMajors() {	  	
+	    return filterFilter($scope.majors, { selected: true });
+	  };
+
+	  //Update list of selected features. 
+	  $scope.$watch('majors|filter:{selected:true}', function (nv) {
+	    $scope.selectedMajors = nv.map(function (major) {	      
+	      return major.name;
+	    });
+	    update_model2($scope.selectedMajors);
+	  }, true);
+
+	  //Update list of hidden features, update PC model
+	  $scope.$watch('majors|filter:{selected:false}', function (nv) {	    
+	    $scope.hideMajors = nv.map(function (major) {
+	      return major.name;
+	    });
+	    //update_model2($scope.hideMajors);
 	  }, true);
 }]);
 

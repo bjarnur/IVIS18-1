@@ -8,27 +8,46 @@
  -->
 <html>
   <head>
-  	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.1/angular.min.js"></script>
+  	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.1/angular.min.js"></script>
   	<!--<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.0rc1/angular-route.min.js"></script>-->
   	<script id="d3" src="https://d3js.org/d3.v3.js"></script>    	  	
   	<script src="d3.parcoords.js"></script>
   	
   	<link rel="stylesheet" type="text/css" href="d3.parcoords.css">	
+  	<link rel="stylesheet" type="text/css" href="style.css">	
 
   	<!--  -->
   	<script id="app" src="http://localhost:8888/index.js"></script>
 
   	<link rel="shortcut icon" href="">
   </head>
-  <body>    
+  <body ng-app="myApp">    
     <div id="about" class="header" style="width:90%;height:10%">
     	<h2>
     		Quantitative information
     	</h2>
     </div>
 
+	<div ng-controller="majorSelectionController">
+	  	<label ng-repeat="major in majors">
+		  <input
+		    type="checkbox"
+		    name="selectedMajors[]"
+		    value="{{major.name}}"
+		    ng-model="major.selected"
+		  > {{major.name}} 
+		  (displayed in 
+		  <span style="color: {{major.color}};">
+		  	<b>{{major.color}}</b>
+		  </span>).
+		</label>
+	</div>
+
+    <!-- D3 uses this canvas  -->
     <div id="canvas" class="parcoords" style="width:95%;height:400px"></div>
-	<div ng-app="myApp" ng-controller="featureSelectionController">
+	
+    <h4>Select attributes to include</h4>
+	<div ng-controller="featureSelectionController">
 	  	<label ng-repeat="feature in features">
 		  <!--
 		      Use `ng-model="dimension.selected"` to utilize two-way-data-binding. Note that `.selected`
